@@ -1,99 +1,62 @@
 'use strict';
-
-// Selecting elements
-const player0El = document.querySelector('.player--0');
-const player1El = document.querySelector('.player--1');
-
-const score0El = document.getElementById('score--0');
-const score1El = document.getElementById('score--1');
-const CurrentScore0EL = document.getElementById('current--0');
-const CurrentScore1EL = document.getElementById('current--1');
-
-const diceEl = document.querySelector('.dice');
-const btnNew = document.querySelector('.btn--new');
-const btnRoll = document.querySelector('.btn--roll');
-const btnHold = document.querySelector('.btn--hold');
-
-//Starting conditions
-let scores, currentScore, activePlayer, playing;
-
-const init = function () {
-  //Starting conditions
-  scores = [0, 0];
-  currentScore = 0;
-  activePlayer = 0;
-  playing = true;
-
-  score0El.textContent = 0;
-  score1El.textContent = 0;
-  CurrentScore0EL.textContent = 0;
-  CurrentScore1EL.textContent = 0;
-
-  diceEl.classList.add('hidden');
-
-  player0El.classList.remove('player--winner');
-  player1El.classList.remove('player--winner');
-  player0El.classList.add('player--active');
-  player1El.classList.remove('player--active');
+//random secret number
+let secretNumber = Math.trunc(Math.random() * 20) + 1;
+//score out of 20
+let score = 20;
+let highscore = 0;
+//function that diplays message on screen
+const displayMessage = function (message) {
+  document.querySelector('.message').textContent = message;
 };
 
-const switchPlayer = function () {
-  document.getElementById(`current--${activePlayer}`).textContent = 0;
-  currentScore = 0;
-  activePlayer = activePlayer === 0 ? 1 : 0;
-  player0El.classList.toggle('player--active');
-  player1El.classList.toggle('player--active');
-};
+//when the player clicks the check button
+document.querySelector('.check').addEventListener('click', function () {
+  const guess = Number(document.querySelector('.guess').value);
+  console.log(guess, typeof guess);
+  //if theres no input
+  if (!guess) {
+    displayMessage('No Number!');
 
-init();
+    //when player wins
+  } else if (guess === secretNumber) {
+    displayMessage('Correct Number!');
+    document.querySelector('.number').textContent = secretNumber;
 
-//rolling dice functionality
-btnRoll.addEventListener('click', function () {
-  if (playing) {
-    //generate random dice number
-    const dice = Math.trunc(Math.random() * 6) + 1;
+    document.querySelector('body').style.backgroundColor = '#60b347';
+    document.querySelector('.number').style.width = '30rem';
+    //if its new highscore we diplay it here
+    if (score > highscore) {
+      highscore = score;
+      document.querySelector('.highscore').textContent = highscore;
+    }
 
-    //display dice
-    diceEl.classList.remove('hidden');
-    diceEl.src = `dice-${dice}.png`;
-
-    //check if dice is #1: if true switch player
-    if (dice !== 1) {
-      //add dice to current score
-      currentScore += dice;
-      document.getElementById(
-        `current--${activePlayer}`
-      ).textContent = currentScore;
+    //when guess is worng
+  } else if (guess !== secretNumber) {
+    //if score is not 0
+    if (score > 1) {
+      //we display this message to hint the secret number
+      displayMessage(guess > secretNumber ? 'Too high!!' : 'Too low!!');
+      score--;
+      document.querySelector('.score').textContent = score;
     } else {
-      //switch player
-      switchPlayer();
+      //else if there are no more chances we display this message
+      displayMessage('You lose!');
     }
   }
 });
+//when player clicks the again button
+document.querySelector('.again').addEventListener('click', function () {
+  //we get another random secret number to be gusssed
+  secretNumber = Math.trunc(Math.random() * 20) + 1;
+  //we reset the score to 20
+  score = 20;
 
-btnHold.addEventListener('click', function () {
-  if (playing) {
-    //add current score to the active player
-    scores[activePlayer] += currentScore;
-    document.getElementById(`score--${activePlayer}`).textContent =
-      scores[activePlayer];
+  //set the screen back to normal
+  displayMessage('Start guessing...');
+  document.querySelector('.number').textContent = '?';
+  document.querySelector('.score').textContent = score;
+  document.querySelector('.guess').value = '';
 
-    //check if score is atleast >=100
-    //finish game
-    if (scores[activePlayer] >= 100) {
-      playing = false;
-      diceEl.classList.add('hidden');
-      document
-        .querySelector(`.player--${activePlayer}`)
-        .classList.add('player--winner');
-      document
-        .querySelector(`.player--${activePlayer}`)
-        .classList.remove('player--active');
-    } else {
-      //else swictch to next player
-      switchPlayer();
-    }
-  }
+  document.querySelector('body').style.backgroundColor = '#222';
+  document.querySelector('.number').style.width = '15rem';
 });
-
-btnNew.addEventListener('click', init);
